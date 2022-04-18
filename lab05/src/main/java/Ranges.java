@@ -1,3 +1,5 @@
+package src.main.java;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -27,7 +29,7 @@ public class Ranges implements Iterable<Interval> {
    * 
    * @param toRemove the range of numbers to subtract
    */
-  public void subtract(Interval toRemove) {
+  public void remove(Interval toRemove) {
     if (toRemove.width() == 0.0) {
       return;
     }
@@ -36,17 +38,27 @@ public class Ranges implements Iterable<Interval> {
       Interval current = iter.next();
       if (current.getMin() > toRemove.getMax())
         break;
-      if (current.overlaps((toRemove))) {
-        Interval lowerPart = current.below(toRemove.getMin());
-        Interval upperPart = current.above(toRemove.getMax());
-        iter.remove();
-        if (lowerPart.width() > 0.0) {
-          iter.add(lowerPart);
-        }
-        if (upperPart.width() > 0.0) {
-          iter.add(upperPart);
-        }
-      }
+      replaceIfOverlapping(toRemove, iter, current);
+    }
+  }
+
+  private void replaceIfOverlapping(Interval toRemove, ListIterator<Interval> iter, Interval current) {
+    if (current.overlaps(toRemove)) {
+      replaceOverlappingInterval(toRemove, iter, current);
+    }
+  }
+
+  private void replaceOverlappingInterval(Interval toRemove, ListIterator<Interval> iter, Interval current) {
+    Interval lowerPart = current.below(toRemove.getMin());
+    Interval upperPart = current.above(toRemove.getMax());
+    iter.remove();
+    addIfNonEmpty(iter, lowerPart);
+    addIfNonEmpty(iter, upperPart);
+  }
+
+  private void addIfNonEmpty(ListIterator<Interval> iter, Interval lowerPart) {
+    if (lowerPart.width() > 0.0) {
+      iter.add(lowerPart);
     }
   }
 
